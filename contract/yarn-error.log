@@ -1,0 +1,101 @@
+Arguments: 
+  /Users/tgreco/.nvm/versions/node/v14.17.1/bin/node /Users/tgreco/agoric-auction/dapp-auction-house/.yarn/releases/yarn-1.22.5.js run
+
+PATH: 
+  /Users/tgreco/.pyenv/shims:/Users/tgreco/.pyenv/bin:/Users/tgreco/.nvm/versions/node/v14.17.1/bin:/usr/local/lib/python3.9/site-packages:/usr/local/bin/python3:/Users/tgreco/.nvm/versions/node/v16.4.0/bin/npm:/Users/tgreco/.nvm/versions/node/16.3.0/lib/node_modules:/Users/tgreco/.nvm/versions/node/15.9.0/lib/node_modules:/Users/tgreco/.nvm/versions/node/14.9.0/lib/node_modules:/Users/tgreco/.nvm/versions/node/14.7.1/lib/node_modules:/Users/tgreco/.nvm/versions/node/v10.16.3/lib/node_modules:/Applications/iPhone Backup Extractor.app/Contents/MacOS:/usr/local/opt/go@1.14/bin:/usr/local/opt/expat/bin:/usr/local/opt/expat/bin:/usr/local/opt/expat/bin:/Users/tgreco/.cargo/bin:/Users/tgreco/.cargo/bin:/usr/local/bin/ag-chain-cosmos:/usr/local/bin/ag-cosmos-helper:/usr/local/opt/sqlite/bin:/usr/local/opt/krb5/sbin:/usr/local/opt/krb5/bin:/usr/local/sbin:~/bin:/Users/tgreco/.yarn/bin:/Users/tgreco/.config/yarn/global/node_modules/.bin:~/npm-global/bin:
+  /Users/tgreco/.nvm/versions/node/v14.17.1/bin:~/.daml/bin:/usr/local/bin:/Users/tgreco/.nvm/versions/node/v14.17.1/bin:/Users/tgreco/.deno/bin:/Users/tgreco/.cargo/bin:/usr/local/opt/sqlite/bin:/usr/local/opt/krb5/sbin:/usr/local/opt/krb5/bin:/usr/local/sbin:/Users/tgreco/.yarn/bin:/Users/tgreco/.config/yarn/global/node_modules/.bin:~/npm-global/bin:/usr/:/usr/loca/:~/go/bin/:/usr/local/opt/gnu-sed/libexec/gnubin:/Users/tgreco:/usr/local/MacGPG2/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/tgreco/.daml/bin:/Users/tgreco/bin:/usr/local/MacGPG2/bin:/Library/Apple/usr/bin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Users/tgreco/.nvm/versions/node/v16.4.0/bin:/Users/tgreco/.nvm/versions/node/v16.4.0:/Users/tgreco/.darknode/bin:/Users/tgreco/.local/bin:/Users/tgreco/.local/bin:~/bin:/Users/tgreco/.nvm/versions/node/v14.17.1/bin/node:/Users/tgreco/.nvm/versions/node/v14.17.1/bin/npm:/usr/local/bin/starport:/usr/local/bin/python3:/Users/tgreco/bin:~/.nvm
+
+Yarn version: 
+  1.22.5
+
+Node version: 
+  14.17.1
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/tgreco/agoric-auction/dapp-auction-house/contract/package.json: Unexpected token } in JSON at position 551
+      at JSON.parse (<anonymous>)
+      at /Users/tgreco/agoric-auction/dapp-auction-house/.yarn/releases/yarn-1.22.5.js:1098:57
+      at Generator.next (<anonymous>)
+      at step (/Users/tgreco/agoric-auction/dapp-auction-house/.yarn/releases/yarn-1.22.5.js:310:30)
+      at /Users/tgreco/agoric-auction/dapp-auction-house/.yarn/releases/yarn-1.22.5.js:321:13
+
+npm manifest: 
+  {
+    "name": "dapp-auction-house-contract",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Contract for the Agoric Dapp",
+    "type": "module",
+    "scripts": {
+      "build": "exit 0",
+      "test": "ava --verbose",
+      "test:watch": "ava --verbose --watch",
+      "lint": "eslint '**/*.{js,jsx}'",
+      "lint-fix": "eslint --fix '**/*.{js,jsx}'",
+      "lint-check": "eslint '**/*.{js,jsx}'",
+      "lint-fix-jessie": "eslint -c '.eslintrc-jessie.js' --fix '**/*.{js,jsx}'",
+      "lint-check-jessie": "eslint -c '.eslintrc-jessie.js' '**/*.{js,jsx}'",
+    },
+    "devDependencies": {
+      "agoric": "*",
+      "ava": "^3.13.0",
+      "eslint": "^7.23.0",
+      "eslint-config-airbnb-base": "^14.2.1 ",
+      "eslint-config-jessie": "^0.0.6",
+      "eslint-config-prettier": "^8.1.0",
+      "eslint-plugin-import": "^2.22.1",
+      "eslint-plugin-prettier": "^3.3.1",
+      "prettier": "^2.2.1"
+    },
+    "dependencies": {
+      "@agoric/assert": "*",
+      "@agoric/babel-parser": "^7.6.4",
+      "@agoric/bundle-source": "*",
+      "@agoric/ertp": "*",
+      "@agoric/eventual-send": "*",
+      "@agoric/install-ses": "*",
+      "@agoric/marshal": "*",
+      "@agoric/notifier": "*",
+      "@agoric/store": "*",
+      "@agoric/zoe": "*",
+      "import-meta-resolve": "^1.1.1"
+    },
+    "ava": {
+      "files": [
+        "test/**/test-*.js"
+      ],
+      "timeout": "10m"
+    },
+    "keywords": [],
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/Agoric/agoric"
+    },
+    "author": "Agoric",
+    "license": "Apache-2.0",
+    "bugs": {
+      "url": "https://github.com/Agoric/agoric/issues"
+    },
+    "homepage": "https://github.com/Agoric/agoric#readme",
+    "eslintConfig": {
+      "extends": [
+        "@agoric"
+      ]
+    },
+    "prettier": {
+      "trailingComma": "all",
+      "singleQuote": true
+    },
+    "eslintIgnore": [
+      "dappConstants.js"
+    ]
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
