@@ -15,6 +15,7 @@ const contractPath = new URL('../src/auction-code.js', import.meta.url)
   .pathname;
 
 test('zoe - create auction contract', async (t) => {
+  t.plan(5);
   const { zoeService } = makeZoeKit(makeFakeVatAdmin().admin);
   const feePurse = E(zoeService).makeFeePurse();
   const zoe = E(zoeService).bindDefaultFeePurse(feePurse);
@@ -45,7 +46,7 @@ test('zoe - create auction contract', async (t) => {
     want: { Ask: cryptoCats(4) },
   });
   const terms = {
-    closesAfter: 20000n,
+    closesAfter: 1n,
     timeAuthority: buildManualTimer(console.log),
   };
   const tgArtKit = makeIssuerKit('TgArt');
@@ -54,23 +55,21 @@ test('zoe - create auction contract', async (t) => {
     Asset: tgArtKit.issuer,
     Ask: moolaIssuer,
   });
-  const auctionRootInstance = await E(zoe).startInstance(
+  const auctionContractInstance = await E(zoe).startInstance(
     installation,
     issuerKeywordRecord,
     terms,
   );
 
-  console.log({ auctionRootInstance });
+  const { creatorFacet } = auctionContractInstance;
+  console.log({ auctionContractInstance });
 
-  t.truthy(await auctionRootInstance, 'contract should contain creatorFacet');
-  console.log({ tgArtKit });
-  const { creatorFacet } = auctionRootInstance;
-  const createAuctionRef = await E(creatorFacet).createAuction(
-    tgArtKit,
-    moolaIssuer,
-    installation,
-    4n,
+  t.truthy(
+    await auctionContractInstance,
+    'contract should contain creatorFacet',
   );
+  console.log({ tgArtKit });
+  const createAuctionRef = await E(creatorFacet).creatorInvitation();
 
   const creatorSeat = await E(zoe).offer(
     createAuctionRef,
@@ -79,15 +78,59 @@ test('zoe - create auction contract', async (t) => {
       want: {
         Ask: AmountMath.make(moolaBrand, 4n),
       },
+      exit: { waived: null },
     }),
     harden({
       Asset: tgArtKit.mint.mintPayment(AmountMath.make(tgArtKit.brand, 1n)),
     }),
   );
-  t.truthy(await E(creatorSeat).getOfferResult(), 'creatorSeat.getOfferResult');
 
-  const bigInvited = await E(creatorSeat).publicBidInvitation();
-  t.truthy(await E(bigInvited), 'bidInvite');
+  const auctionCreationResult = await E(creatorSeat).getOfferResult();
+  t.truthy(
+    auctionCreationResult.makeBidInvitation,
+    'Auction creator seat should return a remotable for making bids',
+  );
+
+  const { makeBidInvitation } = auctionCreationResult;
+  console.log({ makeBidInvitation });
+
+  t.truthy(await makeBidInvitation);
+
+  const bidderSeatOne = await E(zoe).offer(
+    await makeBidInvitation(),
+    harden({
+      want: { Asset: AmountMath.make(tgArtKit.brand, 1n) },
+      give: {
+        Ask: AmountMath.make(moolaBrand, 4n),
+      },
+      exit: { waived: null },
+    }),
+    harden({
+      Ask: moolaMint.mintPayment(AmountMath.make(moolaBrand, 4n)),
+    }),
+  );
+
+  const bidderOnePayout = await bidderSeatOne.getPayout('Asset');
+  t.deepEqual(
+    (await bidderOnePayout.getAllegedBrand().isMyIssuer(tgArtKit.issuer)) ===
+      true,
+    true,
+    'bbiddersea',
+  );
+  t.deepEqual(
+    (await bidderOnePayout.getAllegedBrand().getAllegedName()) === 'TgArt',
+    true,
+
+    'Bid',
+  );
+
+  const winnindBidderResult = await bidderSeatOne.getOfferResult();
+  t.deepEqual(
+    await winnindBidderResult,
+    'TgArt',
+
+    'Bid',
+  );
   //   const auctionCreatorSeat = await E(zoeService).offer(
   //     creatorFacet,
   //     proposal,

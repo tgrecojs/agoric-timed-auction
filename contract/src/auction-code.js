@@ -7,6 +7,7 @@ import { E } from '@agoric/eventual-send';
 import buildManualTimer from '@agoric/zoe/tools/manualTimer';
 import {
   assertProposalShape,
+  assertIssuerKeywords,
   defaultAcceptanceMsg,
 } from '@agoric/zoe/src/contractSupport';
 import { assertBidSeat } from '@agoric/zoe/src/contracts/auction/assertBidSeat';
@@ -25,11 +26,16 @@ const auctionCountdownTracer = trace('Total elapsed time for auction');
  *
  * @type {ContractStartFn}
  */
-const start = async (zcf) => {
+
+const start = (zcf) => {
   const { timeAuthority, closesAfter } = zcf.getTerms();
-  const zoeService = await zcf.getZoeService();
-  const bidSeats = [];
+
   let sellSeat;
+  const bidSeats = [];
+
+  // seller will use 'Asset' and 'Ask'. buyer will use 'Asset' and 'Bid'
+  assertIssuerKeywords(zcf, harden(['Asset', 'Ask']));
+
   E(timeAuthority)
     .setWakeup(
       closesAfter,
@@ -49,10 +55,16 @@ const start = async (zcf) => {
     /** @type {OfferHandler} */
     const performBid = (seat) => {
       assertProposalShape(seat, {
-        give: { Bid: null },
+        give: { Ask: null },
         want: { Asset: null },
       });
+      console.log({
+        bidSeat: seat,
+        bidSeatAllocation: seat.getCurrentAllocation(),
+        sellSeat,
+      });
       assertBidSeat(zcf, sellSeat, seat);
+      console.log({ bidSeats, seat });
       bidSeats.push(seat);
       return defaultAcceptanceMsg;
     };
@@ -67,63 +79,27 @@ const start = async (zcf) => {
     return zcf.makeInvitation(performBid, 'bid', customProperties);
   };
 
-  const createAuction = async (
-    itemKit,
-    moneyIssuer,
-    startAuctionInstallation,
-    pricePerCard,
-    itemAmount = 1000n,
-  ) => {
-    const { issuer: tgArtIssuer, brand: tgArtBrand, mint: tgArtMint } = itemKit;
-    const itemForSaleAmout = AmountMath.make(tgArtBrand, 1n);
-    const itemForSalePayment = tgArtMint.mintPayment(itemForSaleAmout);
-    // Note that the proposal `want` is empty because we don't know
-    // how many cards will be sold, so we don't know how much money we
-    // will make in total.
-    // https://github.com/Agoric/agoric-sdk/issues/855
-    const proposal = harden({
-      give: { Items: AmountMath.make(tgArtBrand, itemAmount) },
+  const sellItem = (seat) => {
+    assertProposalShape(seat, {
+      give: { Asset: null },
+      want: { Ask: null },
+      // The auction is not over until the deadline according to the
+      // provided timer. The seller cannot exit beforehand.
+      exit: { waived: null },
     });
-    const paymentKeywordRecord = harden({ Items: itemForSalePayment });
+    // Save the seat for when the auction closes.
+    sellSeat = seat;
 
-    const issuerKeywordRecord = harden({
-      Items: tgArtIssuer,
-      Money: moneyIssuer,
-    });
-
-    const startAuctionTerms = harden({
-      pricePerItem: pricePerCard,
-    });
-    const { creatorInvitation, creatorFacet, instance, publicFacet } = await E(
-      zoeService,
-    ).startInstance(
-      startAuctionInstallation,
-      issuerKeywordRecord,
-      startAuctionTerms,
-    );
-    const startAuctionCreatorSeat = await E(zoeService).offer(
-      creatorInvitation,
-      proposal,
-      paymentKeywordRecord,
-    );
-
-    return harden({
-      startAuctionCreatorSeat,
-      startAuctonCreatorFacet: creatorFacet,
-      startAuctionInstance: instance,
-      publicBidInvitation: makeBidInvitation,
-    });
+    // The bid invitations can only be sent out after the assets to be
+    // auctioned are escrowed.
+    return Far('offerResult', { makeBidInvitation });
   };
 
-  const creatorFacet = Far('Card store creator', {
-    createAuction: () => zcf.makeInvitation(createAuction, 'Create Auction'),
+  const creatorFacet = Far('creatorFacet', {
+    creatorInvitation: () =>
+      zcf.makeInvitation(sellItem, 'sell item via auction'),
   });
-
-  return harden({
-    creatorFacet,
-    publicFacet: Far('Bid Inviation', {
-      makeBid: () => zcf.makeInvitation(makeBidInvitation, 'Bid'),
-    }),
-  });
+  return { creatorFacet };
 };
+
 export { start };
