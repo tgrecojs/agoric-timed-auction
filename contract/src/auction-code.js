@@ -62,6 +62,7 @@ const start = (zcf) => {
         bidSeat: seat,
         bidSeatAllocation: seat.getCurrentAllocation(),
         sellSeat,
+        sellSeatAllocation: sellSeat.getCurrentAllocation()
       });
       assertBidSeat(zcf, sellSeat, seat);
       console.log({ bidSeats, seat });

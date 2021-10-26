@@ -7,7 +7,7 @@ import bundleSource from '@agoric/bundle-source';
 import { E } from '@agoric/eventual-send';
 import { makeFakeVatAdmin } from '@agoric/zoe/tools/fakeVatAdmin.js';
 import { makeZoeKit } from '@agoric/zoe';
-import { makeIssuerKit, AmountMath } from '@agoric/ertp';
+import { makeIssuerKit, AmountMath, AssetKind } from '@agoric/ertp';
 import buildManualTimer from '@agoric/zoe/tools/manualTimer.js';
 import { setupMixed } from './setupMixedMints.js';
 
@@ -28,29 +28,19 @@ test('zoe - create auction contract', async (t) => {
   const { cryptoCats, ccIssuer, moola } = setupMixed();
   // We'll use an imaginary currency "moola" as the money that we
   // require to buy baseball cards
-  const {
-    mint: moolaMint,
-    issuer: moolaIssuer,
-    brand: moolaBrand,
-  } = makeIssuerKit('moola');
-
+  const moolaKit = makeIssuerKit('moola');
+  const { mint: moolaMint, issuer: moolaIssuer, brand: moolaBrand } = moolaKit;
   // We will also install the sellItems contract from agoric-sdk
   const bundleUrl = await importMetaResolve(
-    '@agoric/zoe/src/contracts/sellItems.js',
+    '@agoric/zoe/src/contracts/auction/secondPriceAuction.js',
     import.meta.url,
   );
-  const bundlePath = new URL(bundleUrl).pathname;
-
-  const sellerProposal = harden({
-    give: { Asset: moola(1000) },
-    want: { Ask: cryptoCats(4) },
-  });
   const terms = {
     closesAfter: 1n,
     timeAuthority: buildManualTimer(console.log),
   };
-  const tgArtKit = makeIssuerKit('TgArt');
-
+  const tgArtKit = makeIssuerKit('TgArt', AssetKind.SET);
+  const oneThousandMoolas = AmountMath.make(moolaBrand, 1000n);
   const issuerKeywordRecord = harden({
     Asset: tgArtKit.issuer,
     Ask: moolaIssuer,
@@ -61,7 +51,7 @@ test('zoe - create auction contract', async (t) => {
     terms,
   );
 
-  const { creatorFacet } = auctionContractInstance;
+  const { creatorFacet, instance } = auctionContractInstance;
   console.log({ auctionContractInstance });
 
   t.truthy(
@@ -71,17 +61,22 @@ test('zoe - create auction contract', async (t) => {
   console.log({ tgArtKit });
   const createAuctionRef = await E(creatorFacet).creatorInvitation();
 
+  const auctionCreatorsTerms = await E(zoe).getTerms(instance);
+
+  t.is(auctionCreatorsTerms.closesAfter, 1n);
+
+  const TgArtItem = AmountMath.make(tgArtKit.brand, [{ value: 1n }]);
   const creatorSeat = await E(zoe).offer(
     createAuctionRef,
     harden({
-      give: { Asset: AmountMath.make(tgArtKit.brand, 1n) },
+      give: { Asset: TgArtItem },
       want: {
-        Ask: AmountMath.make(moolaBrand, 4n),
+        Ask: oneThousandMoolas,
       },
       exit: { waived: null },
     }),
     harden({
-      Asset: tgArtKit.mint.mintPayment(AmountMath.make(tgArtKit.brand, 1n)),
+      Asset: tgArtKit.mint.mintPayment(TgArtItem),
     }),
   );
 
@@ -99,18 +94,16 @@ test('zoe - create auction contract', async (t) => {
   const bidderSeatOne = await E(zoe).offer(
     await makeBidInvitation(),
     harden({
-      want: { Asset: AmountMath.make(tgArtKit.brand, 1n) },
-      give: {
-        Ask: AmountMath.make(moolaBrand, 4n),
-      },
-      exit: { waived: null },
+      want: { Asset: TgArtItem },
+      give: { Ask: oneThousandMoolas },
     }),
     harden({
-      Ask: moolaMint.mintPayment(AmountMath.make(moolaBrand, 4n)),
+      Ask: moolaKit.mint.mintPayment(oneThousandMoolas),
     }),
   );
 
-  const bidderOnePayout = await bidderSeatOne.getPayout('Asset');
+  const bidderOnePayout = await E(bidderSeatOne).getOfferResult();
+  t.deepEqual(await bidderOnePayout, {}, 'winning bidder payout');
   t.deepEqual(
     (await bidderOnePayout.getAllegedBrand().isMyIssuer(tgArtKit.issuer)) ===
       true,
