@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-const CardDisplay = ({ playerNames, handleClick }) => {
+const CardDisplay = ({ playerNames, handleClick, buyComponent }) => {
   const classes = useStyles();
 
   const cards = playerNames.map((playerName) => (
@@ -28,6 +28,7 @@ const CardDisplay = ({ playerNames, handleClick }) => {
         playerName={playerName}
         key={playerName}
         handleClick={handleClick}
+        buyComponent={buyComponent}
       />
     </Grid>
   ));

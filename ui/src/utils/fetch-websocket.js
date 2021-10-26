@@ -13,11 +13,17 @@ function logMsg(obj, direction = 'send:') {
   const type = obj.type;
   switch (type) {
     case undefined:
-      // Skip untyped objects.
-      // console.log(direction, obj);
+      //  untyped objects.
+      // coSkipnsole.log(direction, obj);
       return;
     case 'CTP_CALL':
-      console.log(direction, type, obj.method && obj.method.body, obj);
+      console.log({
+        direction,
+        type,
+        objMethod: obj.method,
+        body: obj.method.body,
+        obj,
+      });
       return;
     case 'CTP_RETURN':
       console.log(direction, type, (obj.exception || obj.result).body, obj);
@@ -53,7 +59,7 @@ function createSocket({ onConnect, onDisconnect, onMessage }, endpoint) {
       ifr.setAttribute('height', '0');
       ifr.setAttribute('style', 'display: none');
       document.body.appendChild(ifr);
-      window.addEventListener('message', ev => {
+      window.addEventListener('message', (ev) => {
         // console.log('dapp ui got', ev);
         logMsg(ev.data, 'recv');
         if (ev.data && ev.data.type === 'walletBridgeLoaded') {
@@ -122,7 +128,7 @@ function createSocket({ onConnect, onDisconnect, onMessage }, endpoint) {
         if (kind !== 'message') {
           throw Error(`Cannot bridge.addEventListener kind ${kind}`);
         }
-        const onmsg = data => cb({ data });
+        const onmsg = (data) => cb({ data });
         messageListeners.add(onmsg);
         messageSubscriptions.add(onmsg);
       },
@@ -191,7 +197,7 @@ export async function doFetch(req, endpoint = '/private/wallet-bridge') {
   }
 
   let resolve;
-  const p = new Promise(res => {
+  const p = new Promise((res) => {
     resolve = res;
   });
   socket.send(JSON.stringify(req));

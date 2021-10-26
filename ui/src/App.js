@@ -147,14 +147,30 @@ function App() {
     return deactivateWebSocket;
   }, []);
 
+  const [proposedPrice, setProposedPrice] = useState(0);
+
+  const BuyItem = () => {
+    return (
+      <>
+        <label>Enter bid price:</label>
+        <input
+          type="number"
+          value={proposedPrice}
+          onChange={(e) => setProposedPrice(e.target.value)}
+        />
+      </>
+    );
+  };
+
   const handleClick = (name) => {
+    console.log({ walletPRef: walletPRef.current, pricePerCard, name });
     makeOfferForCards({
       walletP: walletPRef.current,
       publicFacet: publicFacetRef.current,
       cards: harden([name]),
       cardPurse,
       tokenPurse,
-      pricePerCard: BigInt(pricePerCard),
+      pricePerCard: BigInt(proposedPrice),
     });
     setNeedToApproveOffer(true);
   };
@@ -167,7 +183,11 @@ function App() {
   return (
     <div className="App">
       <Header walletConnected={walletConnected} dappApproved={dappApproved} />
-      <CardDisplay playerNames={availableCards} handleClick={handleClick} />
+      <CardDisplay
+        playerNames={availableCards}
+        handleClick={handleClick}
+        buyComponent={BuyItem}
+      />
       <EnableAppDialog
         open={openEnableAppDialog}
         handleClose={handleDialogClose}

@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-const BaseballCard = ({ playerName, handleClick }) => {
+const BaseballCard = ({ playerName, handleClick, buyComponent }) => {
   const classes = useStyles();
 
   return (
@@ -46,6 +46,7 @@ const BaseballCard = ({ playerName, handleClick }) => {
           >
             {playerName}
           </Typography>
+          {buyComponent()}
         </CardContent>
       </CardActionArea>
     </Card>
